@@ -86,10 +86,14 @@ x_train_det, X_test_det, y_train_det, y_test_det = train_test_split(
     X_det, y_det, test_size=0.2, random_state=42, stratify=y_det
 )
 
-# Preprocessor for pipeline (scales V & H, encodes S) with handle_unknown='ignore'
+# Create a list of all possible values for 'S'
+s_values = [1.0, 2.0, 3.0, 4.0]  # Add all possible values you expect
+
+# Preprocessor for pipeline (scales V & H, encodes S) with explicit categories
 detector_preprocessor = ColumnTransformer([
     ('scale', StandardScaler(), ['V', 'H']),
-    ('encode', OneHotEncoder(drop='first', handle_unknown='ignore'), ['S'])
+    ('encode', OneHotEncoder(drop='first', handle_unknown='ignore', 
+                           categories=[s_values]), ['S'])
 ])
 
 models_det = {
@@ -133,10 +137,11 @@ x_train, X_test, y_train, y_test = train_test_split(
     X_clf, y_clf, test_size=0.2, random_state=42, stratify=y_clf
 )
 
-# Preprocessor for classification with handle_unknown='ignore'
+# Preprocessor for classification with explicit categories
 classifier_preprocessor = ColumnTransformer([
     ('scale', StandardScaler(), ['V', 'H']),
-    ('encode', OneHotEncoder(drop='first', handle_unknown='ignore'), ['S'])
+    ('encode', OneHotEncoder(drop='first', handle_unknown='ignore', 
+                           categories=[s_values]), ['S'])
 ])
 
 # Comparing and choosing the best algorithms:
