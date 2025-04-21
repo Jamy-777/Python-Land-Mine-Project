@@ -1,6 +1,7 @@
 This repository is for a Python project of mine which imports a dataset from UCI ML Repo (https://archive.ics.uci.edu/dataset/763/land+mines-1).
 
 Structure of the project:
+
 ├── Land_Mines.py                               This is the training part of the project where I have made the model.
 
 ├── Deployed_Model.py                           This is the Streamlit web app that I have implemented for the model I made to give an interactive 
