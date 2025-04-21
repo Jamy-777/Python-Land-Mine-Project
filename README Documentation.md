@@ -10,7 +10,7 @@ feel.
 
 ├── land_mines_randomforest_detection.joblib    This is the detection model written to the disk using JobLib library and the web app refers to this.
 
-├── land_mines_randomeforest_classification.joblib    This is the classification step of the modeling and only runs when the detection step is executed and the result is 1 or true or the mine is there waiting for you.
+├── land_mines_randomforest_classification.joblib    This is the classification step of the modeling and only runs when the detection step is executed and the result is 1 or true or the mine is there waiting for you.
 
 ├── Paper.pdf                              This is the paper I have referred to for the dataset and the working of the model.
 
