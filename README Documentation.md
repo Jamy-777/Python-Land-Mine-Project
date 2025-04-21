@@ -45,9 +45,15 @@ will open the app locally in your browser.
 SOURCES AND HELPING DOCUMENTATION:
 
 Z-Score Outlier Tutorial: https://towardsdatascience.com/identifying-outliers-using-standard-deviation-ebf3b9caa0cf
+
 ColumnTransformer Guide: https://scikit-learn.org/stable/modules/compose.html#columntransformer-for-numeric-and-categorical-data
+
 Train_test_split: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.train_test_split.html  
+
 Cross_val_score: https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.cross_val_score.html  
+
 Pipeline: https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html
+
 KNeighborsClassifier: https://scikit-learn.org/stable/modules/generated/sklearn.neighbors.KNeighborsClassifier.html
+
 Confusion Matrix Explained: https://scikit-learn.org/stable/visualizations.html#confusion-matrix
