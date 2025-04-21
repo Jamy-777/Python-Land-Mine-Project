@@ -9,11 +9,10 @@ detection_model = joblib.load("land_mines_randomforest_detection.joblib")
 # Function to safely preprocess and predict
 def safe_predict(model, input_data):
     try:
-        # First, let's ensure S is within expected range (1-4)
         input_data_copy = input_data.copy()
         s_value = input_data_copy['S'].iloc[0]
         if s_value < 1 or s_value > 4:
-            input_data_copy['S'] = 1.0  # Default to 1.0 if out of range
+            input_data_copy['S'] = 1.0  
             
         # Create a transformed test point with each possible S value to determine feature count
         test_points = []
@@ -28,17 +27,14 @@ def safe_predict(model, input_data):
             try:
                 pred = model.predict(point)[0]
                 predictions.append(pred)
-                # If we got a successful prediction, use this value
                 if point['S'].iloc[0] == s_value:
                     return pred
             except:
                 pass
         
-        # If original S value failed, return the prediction from S=1.0 as fallback
         if predictions:
             return predictions[0]
         
-        # If all else fails, try a direct prediction with warning
         st.warning("Using fallback prediction method - results may be unreliable")
         return model.predict(input_data_copy)[0]
     
@@ -73,7 +69,6 @@ st.caption(f"Selected soil type: {soil_type_values.get(int(s), 'Unknown')}")
 if st.button("To mine or not to mine?"):
     input_data = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
     
-    # Use our safe prediction function
     is_mine = safe_predict(detection_model, input_data)
     
     if is_mine == 1:
