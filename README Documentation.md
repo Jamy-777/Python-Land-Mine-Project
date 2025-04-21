@@ -2,16 +2,22 @@ This repository is for a Python project of mine which imports a dataset from UCI
 
 Structure of the project:
 ├── Land_Mines.py                               This is the training part of the project where I have made the model.
-├── Deployed_Model.py                           This is the Streamlit web app that I have implemented for the model I made to give an interactive feel.
+
+├── Deployed_Model.py                           This is the Streamlit web app that I have implemented for the model I made to give an interactive 
+feel.
 
 ├── requirements.txt                            These are the various Python libraries you need in order to run this file.
+
 ├── land_mines_randomforest_detection.joblib    This is the detection model written to the disk using JobLib library and the web app refers to this.
 
 ├── land_mines_randomeforest_classification.joblib    This is the classification step of the modeling and only runs when the detection step is executed and the result is 1 or true or the mine is there waiting for you.
 
 ├── Paper.pdf                              This is the paper I have referred to for the dataset and the working of the model.
+
 ├── Mine_Dataset_CSV.csv                   This is the dataset file having three features or variables on which we have to work on to find the target variable.
+
 ├── Mine_Dataset.xls                       This is the dataset with the required brief information about the features and the target.
+
 ├── README.md                              This is the documentation of the project, I hope it's good enough.
 
 OVERVIEW: 
