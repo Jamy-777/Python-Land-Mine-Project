@@ -89,7 +89,7 @@ x_train_det, X_test_det, y_train_det, y_test_det = train_test_split(
 # Preprocessor for pipeline (scales V & H, encodes S)
 detector_preprocessor = ColumnTransformer([
     ('scale', StandardScaler(), ['V', 'H']),
-    ('encode', OneHotEncoder(drop='first'), ['S'])
+    ('encode', OneHotEncoder(drop='first', categories=[[1,2,3,4,5,6]]), ['S'])
 ])
 
 models_det = {
@@ -136,7 +136,7 @@ x_train, X_test, y_train, y_test = train_test_split(
 # Preprocessor for classification (same as detection)
 classifier_preprocessor = ColumnTransformer([
     ('scale', StandardScaler(), ['V', 'H']),
-    ('encode', OneHotEncoder(drop='first'), ['S'])
+    ('encode', OneHotEncoder(drop='first', categories=[[1,2,3,4,5,6]]), ['S'])
 ])
 
 # Comparing and choosing the best algorithms:
