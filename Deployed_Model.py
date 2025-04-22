@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 det_model = joblib.load("land_mines_randomforest_detection.joblib")
-scaler = joblib.load("models/scaler_detection.joblib")
+scaler = joblib.load("land_mines_randomforest_classification.joblib")
 
 st.title("Land Mine Detection App (Hopefully ;)")
 st.markdown(
