@@ -2,11 +2,16 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# load your full pipeline
-my_model = joblib.load("land_mines_randomforest_detection.joblib")
+# Load trained detection model (random‐forest only, no encoder/scaler)
+det_model = joblib.load("land_mines_randomforest_detection.joblib")
+# Load the scaler you used for V & H at training time
+scaler = joblib.load("models/scaler_detection.joblib")
 
 st.title("Land Mine Detection App (Hopefully ;)")
-st.markdown("…")
+st.markdown(
+    "This app predicts whether a land mine is present or not based on various sensory inputs; "
+    "well I mean hopefully it does... It's not like you are gonna come complaining... right?"
+)
 
 soil_type_values = {
     1: "Dry and Sandy",
@@ -17,19 +22,34 @@ soil_type_values = {
     6: "Humid and Limy"
 }
 
-v = st.number_input("Output voltage …", 0.0, 10.6, 5.0, step=0.1)
-h = st.number_input("Enter the height … (cm):", 0.0, 20.0, 10.0, step=0.5)
-
-s = st.selectbox(
-    "Soil type:",
-    options=[1,2,3,4,5,6],
-    format_func=lambda i: soil_type_values[i]
+v = st.number_input(
+    "Output voltage of FLC sensor due to magnetic distortion:",
+    min_value=0.0, max_value=10.6, step=0.1, value=5.0
 )
+h = st.number_input(
+    "Enter the height of the sensor from the ground (cm):",
+    min_value=0.0, max_value=20.0, step=0.5, value=10.0
+)
+s = int(st.number_input(
+    "Soil type depending on moisture content (1-6):",
+    min_value=1, max_value=6, step=1, value=3
+))
 
 if st.button("To mine or not to mine?"):
-    input_data = pd.DataFrame([[v, h, s]], columns=["V","H","S"])
-    prediction = my_model.predict(input_data)[0]
-
+    # 1) Create raw DataFrame
+    raw = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
+    
+    # 2) Scale V & H
+    raw[["V", "H"]] = scaler.transform(raw[["V", "H"]])
+    
+    # 3) Manually one-hot soil (drop category 1)
+    for cat in [2, 3, 4, 5, 6]:
+        raw[f"S_{cat}"] = (raw["S"] == cat).astype(int)
+    # 4) Drop original S
+    X = raw.drop("S", axis=1)
+    
+    # 5) Predict
+    is_mine = det_model.predict(X)[0]
     mine_classes = {
         1: "Nuh uh (Class 1)",
         2: "AT Mine (Class 2)",
@@ -37,5 +57,4 @@ if st.button("To mine or not to mine?"):
         4: "Booby-trapped AP (Class 4)",
         5: "M14 AP (Class 5)"
     }
-
-    st.success(f"Prediction: {mine_classes.get(prediction, 'Unknown')}")
+    st.success(f"Prediction: {mine_classes.get(is_mine, 'Unknown')}")
