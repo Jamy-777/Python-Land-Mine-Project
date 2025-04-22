@@ -2,9 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load trained detection model (random‐forest only, no encoder/scaler)
 det_model = joblib.load("land_mines_randomforest_detection.joblib")
-# Load the scaler you used for V & H at training time
 scaler = joblib.load("models/scaler_detection.joblib")
 
 st.title("Land Mine Detection App (Hopefully ;)")
@@ -36,19 +34,14 @@ s = int(st.number_input(
 ))
 
 if st.button("To mine or not to mine?"):
-    # 1) Create raw DataFrame
     raw = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
     
-    # 2) Scale V & H
     raw[["V", "H"]] = scaler.transform(raw[["V", "H"]])
     
-    # 3) Manually one-hot soil (drop category 1)
     for cat in [2, 3, 4, 5, 6]:
         raw[f"S_{cat}"] = (raw["S"] == cat).astype(int)
-    # 4) Drop original S
     X = raw.drop("S", axis=1)
     
-    # 5) Predict
     is_mine = det_model.predict(X)[0]
     mine_classes = {
         1: "Nuh uh (Class 1)",
