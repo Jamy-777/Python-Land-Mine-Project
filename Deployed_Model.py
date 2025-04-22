@@ -2,33 +2,41 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Now I am loading my trained model and scaler here for creating the web app:
+# Load both pipelines
+det_model = joblib.load("land_mines_detection.joblib")
+clf_model = joblib.load("land_mines_classification.joblib")
 
-my_model = joblib.load("land_mines_logisticregression.joblib")
-saved_scaler = joblib.load("land_mines_saved_scaler.joblib")
+st.title("💣 Land Mine Detection App")
+st.markdown("This app first detects if a mine is present, and if so, predicts its type.")
 
-st.title("Land Mine Detection App (Hopefully ;) ")
-st.markdown("This app predicts whether a land mine is present or not based on various sensory inputs, " \
-"well I mean hopefully it does... It's not like you are gonna come complaining... right?")
+# User input
+v = st.number_input("Voltage (V) [0 - 10.6 V]", min_value=0.0, max_value=10.6, step=0.1, value=5.5)
+h = st.number_input("Height from ground (cm) [0 - 20 cm]", min_value=0.0, max_value=20.0, step=0.1, value=10.0)
+s_type = st.selectbox("Soil Type", {
+    1: "Dry and Sandy",
+    2: "Dry and Humus",
+    3: "Dry and Limy",
+    4: "Humid and Sandy",
+    5: "Humid and Humus",
+    6: "Humid and Limy"
+})
 
-v = st.number_input("Output voltage of FLC sensor due to magnetic distortion:", 
-                    min_value=0.0, max_value=10.6, step=0.1, value=5.0)
+# Create input DataFrame
+user_input = pd.DataFrame([[v, h, s_type]], columns=['V', 'H', 'S'])
 
-h = st.number_input("Enter the height of the sensor from the ground:", min_value=0.0, max_value=20.0, step=0.5, value=10.0)
-s = st.number_input("Soil type depending on moisture content:", min_value=1.0, max_value=6.0, step=1.0, value=3.0)
+# Run prediction
+if st.button("Predict"):
+    is_mine = det_model.predict(user_input)[0]
 
-if st.button("To mine or not to mine?"):
-    input_data = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
-    input_scaled = saved_scaler.transform(input_data)
-    input_scaled_df = pd.DataFrame(input_scaled, columns=["V", "H", "S"])
-    prediction = my_model.predict(input_scaled_df)[0]
-
-    mine_classes = {
-        1: "Nuh uh (Class 1)",
-        2: "AT Mine (Class 2)",
-        3: "AP Mine(Class 3)",
-        4: "Booby-trapped AP (Class 4)",
-        5: "M14 AP (Class 5)"
-    }
-
-    st.success(f" Prediction: {mine_classes.get(prediction, 'Unknown')}")
+    if is_mine == 0:
+        st.success("🟢 No mine detected. You're safe!")
+    else:
+        prediction = clf_model.predict(user_input)[0]
+        mine_classes = {
+            2: "AT Mine",
+            3: "AP Mine",
+            4: "Booby-trapped AP Mine",
+            5: "M14 AP Mine"
+        }
+        result = mine_classes.get(prediction, "Unknown")
+        st.error(f"🔴 Mine Detected! Type: **{result}** (Class {prediction})")
