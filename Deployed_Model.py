@@ -3,8 +3,8 @@ import pandas as pd
 import joblib
 
 # Load both pipelines
-det_model = joblib.load("land_mines_detection.joblib")
-clf_model = joblib.load("land_mines_classification.joblib")
+det_model = joblib.load("land_mines_randomforest_detection.joblib")
+clf_model = joblib.load("land_mines_randomforest_classification.joblib")
 
 st.title("💣 Land Mine Detection App")
 st.markdown("This app first detects if a mine is present, and if so, predicts its type.")
