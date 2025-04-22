@@ -43,7 +43,6 @@ print(landmine_df['M'].value_counts().sort_index())
 print()
 
 # Remove noisy outliers in V and H (|z|>3), but stratify by class to maintain distribution
-# Create a copy to avoid SettingWithCopyWarning
 landmine_df_clean = landmine_df.copy()
 for class_val in landmine_df['M'].unique():
     class_df = landmine_df[landmine_df['M'] == class_val]
@@ -62,9 +61,7 @@ print(landmine_df['M'].value_counts().sort_index())
 print()
 
 # Creating a binary target for detection (1 = Mine, 0 = No mine):
-target_column = 'M'
-# Fixed: is_mine = 1 when M is any mine class (not equal to 1, which is 'No Mine')
-landmine_df['is_mine'] = (landmine_df[target_column] != 1).astype(int)
+target_column = 'M'landmine_df['is_mine'] = (landmine_df[target_column] != 1).astype(int)
 
 #                                  --Performing Exploratory Data Analysis--                                   
 
@@ -180,22 +177,19 @@ joblib.dump(best_det_pipeline, f"land_mines_{best_det_name.lower()}_detection.jo
 #                                  --Creating a classification model--                                   
 
 # Use the entire dataset but make classification multi-class (mine types)
-# This replaces the previous approach of filtering only mines
 X_clf = landmine_df[['V', 'H', 'S']]
-y_clf = landmine_df[target_column]  # Original target with all classes
+y_clf = landmine_df[target_column]  
 
 # Training and testing the split for classification:
 X_train_clf, X_test_clf, y_train_clf, y_test_clf = train_test_split(
     X_clf, y_clf, test_size=0.2, random_state=42, stratify=y_clf
 )
 
-# Preprocessor for classification (same as detection)
 classifier_preprocessor = ColumnTransformer([
     ('scale', StandardScaler(), ['V', 'H']),
     ('encode', OneHotEncoder(drop='first', sparse_output=False), ['S'])
 ])
 
-# Comparing and choosing the best algorithms:
 models = {
     "LogisticRegression": LogisticRegression(class_weight='balanced', max_iter=1000),
     "RandomForest": RandomForestClassifier(n_estimators=100, class_weight='balanced', random_state=42),
@@ -203,7 +197,6 @@ models = {
     "SVM": SVC(kernel='rbf', probability=True, class_weight='balanced')
 }
 
-# Checking which model performs best:
 model_scores = {}
 for name, model in models.items():
     print(f"\n--- Classification: {name} ---")
@@ -225,12 +218,10 @@ best_model_name = max(model_scores, key=lambda k: model_scores[k][0])
 best_model_pipeline = model_scores[best_model_name][1]
 print(f"\nBest Classification Model: {best_model_name} with accuracy = {model_scores[best_model_name][0]:.3f}\n")
 
-# Saving the best classification pipeline:
 filename = f"land_mines_{best_model_name.lower()}_classification.joblib"
 joblib.dump(best_model_pipeline, filename)
 print(f"Exported best model to {filename}\n")
 
-# Creating a function to make predictions with both models:
 def predict_landmine(V, H, S, detection_model, classification_model):
     """
     Predicts landmine presence and type using both models.
@@ -243,14 +234,11 @@ def predict_landmine(V, H, S, detection_model, classification_model):
     Returns:
         Dictionary with prediction results
     """
-    # Create a DataFrame with the input data
     input_data = pd.DataFrame({'V': [V], 'H': [H], 'S': [S]})
     
-    # Step 1: Detect if there's a mine
     is_mine = detection_model.predict(input_data)[0]
-    is_mine_prob = detection_model.predict_proba(input_data)[0][1]  # Probability of being a mine
+    is_mine_prob = detection_model.predict_proba(input_data)[0][1]  
     
-    # Step 2: If it's a mine, classify its type
     mine_type = None
     mine_type_probs = None
     if is_mine == 1:
@@ -266,7 +254,6 @@ def predict_landmine(V, H, S, detection_model, classification_model):
     
     return result
 
-# Example of using the prediction function
 print("\n--- Example Prediction ---")
 # Load the best models
 detection_model = joblib.load(f"land_mines_{best_det_name.lower()}_detection.joblib")
