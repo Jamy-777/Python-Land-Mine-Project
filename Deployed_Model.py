@@ -2,10 +2,14 @@ import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
-# Load the model pipelines
-det_pipeline = joblib.load("land_mines_randomforest_detection.joblib")
-clf_pipeline = joblib.load("land_mines_randomforest_classification.joblib")
+try:
+    det_pipeline = joblib.load("land_mines_randomforest_detection.joblib")
+    clf_pipeline = joblib.load("land_mines_randomforest_classification.joblib")
+except Exception as e:
+    st.error(f"Error loading model files: {e}")
+    st.stop()
 
 st.title("Land Mine Detection App (Hopefully ;)")
 st.markdown(
@@ -38,23 +42,64 @@ s = int(st.number_input(
 ))
 
 if st.button("To mine or not to mine?"):
-    # Create input dataframe
-    input_data = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
-    
-    # Use the entire pipeline to make predictions instead of manually preprocessing
-    is_mine_detected = det_pipeline.predict(input_data)[0]
-    
-    if is_mine_detected == 1:  # If a mine is detected
-        # Use the classification pipeline to determine the type
-        mine_class = clf_pipeline.predict(input_data)[0]
+    try:
+        input_data = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
         
-        mine_classes = {
-            1: "Nuh uh (Class 1)",
-            2: "AT Mine (Class 2)",
-            3: "AP Mine (Class 3)",
-            4: "Booby-trapped AP (Class 4)",
-            5: "M14 AP (Class 5)"
-        }
-        st.success(f"Prediction: {mine_classes.get(mine_class, 'Unknown')}")
-    else:
-        st.success("Prediction: No mine detected (Class 1)")
+        scaled_data = pd.DataFrame(input_data.copy())
+        
+        for cat in range(2, 7): 
+            col_name = f"S_{cat}"
+            scaled_data[col_name] = 1 if s == cat else 0
+            
+        if "S" in scaled_data.columns:
+            scaled_data = scaled_data.drop("S", axis=1)
+            
+        try:
+            preprocessor = det_pipeline.named_steps['preprocess']
+            scaler = preprocessor.transformers_[0][1]
+            scaled_vh = scaler.transform(input_data[["V", "H"]])
+            scaled_data["V"] = scaled_vh[0][0]
+            scaled_data["H"] = scaled_vh[0][1]
+            
+            is_mine_detected = det_pipeline.named_steps['classifier'].predict(scaled_data)[0]
+            
+            if is_mine_detected == 1:  
+                mine_class = clf_pipeline.named_steps['classifier'].predict(scaled_data)[0]
+                
+                mine_classes = {
+                    1: "No Mine (Class 1)",
+                    2: "AT Mine (Class 2)",
+                    3: "AP Mine (Class 3)",
+                    4: "Booby-trapped AP (Class 4)",
+                    5: "M14 AP (Class 5)"
+                }
+                st.success(f"Prediction: {mine_classes.get(mine_class, 'Unknown')}")
+            else:
+                st.success("Prediction: No mine detected (Class 1)")
+        except Exception as e:
+            st.error(f"Error during preprocessing: {e}")
+            
+            raw = pd.DataFrame([[v, h, s]], columns=["V", "H", "S"])
+            for cat in range(2, 7):
+                raw[f"S_{cat}"] = (raw["S"] == cat).astype(int)
+            X = raw.drop("S", axis=1)
+            
+            try:
+                st.warning("Using fallback prediction method with unscaled data.")
+                is_mine = det_pipeline.named_steps['classifier'].predict(X)[0]
+                
+                mine_classes = {
+                    1: "No Mine (Class 1)",
+                    2: "AT Mine (Class 2)",
+                    3: "AP Mine (Class 3)",
+                    4: "Booby-trapped AP (Class 4)",
+                    5: "M14 AP (Class 5)"
+                }
+                st.success(f"Prediction: {mine_classes.get(is_mine, 'Unknown')}")
+            except Exception as e2:
+                st.error(f"Fallback prediction also failed: {e2}")
+                st.info("Please check your model pipeline structure and try again.")
+                
+    except Exception as e:
+        st.error(f"Error during prediction: {str(e)}")
+        st.info("Debug info: Make sure you're using the same version of scikit-learn for both training and deployment.")
